@@ -253,55 +253,44 @@ function loadTables() {
 }
 /* ORDERS */
 
-function loadOrders(){
+import {
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+function loadOrders() {
 
   onSnapshot(
+    collection(db, "restaurants", uid, "orders"),
+    (snap) => {
 
-    collection(
-      db,
-      "restaurants",
-      uid,
-      "orders"
-    ),
+      const list = document.getElementById("ordersList");
+      list.innerHTML = "";
 
-    snap => {
+      snap.forEach((doc) => {
 
-      const list =
-        document
-          .getElementById(
-            "ordersList"
-          );
+        const o = doc.data();
 
-      list.innerHTML =
-        "";
+        let itemsText = "";
 
-      snap.forEach(
-        doc => {
+        o.items.forEach(i => {
+          itemsText += `${i.name} `;
+        });
 
-          const order =
-            doc.data();
+        list.innerHTML += `
+          <div class="order-card">
 
-          list.innerHTML += `
-            <div class="order-card">
+            🪑 Table: ${o.tableId}
+            <br>
+            🍔 Items: ${itemsText}
+            <br>
+            📌 Status: ${o.status}
 
-              🪑 ${order.table}
+          </div>
+        `;
 
-              <br>
-
-              🍔 ${order.item}
-
-              <br>
-
-              ₹ ${order.price}
-
-            </div>
-          `;
-
-        }
-      );
+      });
 
     }
-
   );
 
 }
