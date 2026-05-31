@@ -173,82 +173,84 @@ function loadMenu(){
 
 /* TABLES */
 
-window.addTable =
-async () => {
+import { auth, db } from "./firebase.js";
+import {
+  collection,
+  addDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const tableName =
-    document
-      .getElementById(
-        "tableName"
-      )
-      .value;
+let uid = null;
 
-  if(!tableName)
-    return;
+/* AUTH */
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  await addDoc(
+onAuthStateChanged(auth, (user) => {
+  if (!user) location.href = "index.html";
+  uid = user.uid;
 
-    collection(
-      db,
-      "restaurants",
-      uid,
-      "tables"
-    ),
+  loadTables();
+  loadOrders();
+});
 
+/* ===================== TABLES ===================== */
+
+window.addTable = async () => {
+
+  const name = document.getElementById("tableName").value;
+
+  if (!name) return;
+
+  const tableRef = await addDoc(
+    collection(db, "restaurants", uid, "tables"),
     {
-      name:
-      tableName
+      name: name,
+      createdAt: Date.now()
     }
-
   );
+
+  const qrLink =
+    `${location.origin}/table.html?r=${uid}&t=${tableRef.id}`;
+
+  alert("Table created!\nQR Link:\n" + qrLink);
 
 };
 
-function loadTables(){
+function loadTables() {
 
   onSnapshot(
+    collection(db, "restaurants", uid, "tables"),
+    (snap) => {
 
-    collection(
-      db,
-      "restaurants",
-      uid,
-      "tables"
-    ),
+      const list = document.getElementById("tableList");
+      list.innerHTML = "";
 
-    snap => {
+      snap.forEach((doc) => {
 
-      const list =
-        document
-          .getElementById(
-            "tableList"
-          );
+        const t = doc.data();
 
-      list.innerHTML =
-        "";
+        const qrLink =
+          `${location.origin}/table.html?r=${uid}&t=${doc.id}`;
 
-      snap.forEach(
-        doc => {
+        list.innerHTML += `
+          <div class="order-card">
 
-          const table =
-            doc.data();
+            🪑 ${t.name}
+            <br><br>
 
-          list.innerHTML += `
-            <div class="order-card">
+            <small>${qrLink}</small>
 
-              ${table.name}
+          </div>
+        `;
 
-            </div>
-          `;
-
-        }
-      );
+      });
 
     }
-
   );
 
 }
-
 /* ORDERS */
 
 function loadOrders(){
