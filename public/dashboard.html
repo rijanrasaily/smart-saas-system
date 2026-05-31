@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Smart Cafe Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="navbar">
+
+  <div>
+    <h2 id="restaurantTitle">Restaurant</h2>
+  </div>
+
+  <div>
+    <span id="planBadge" class="badge">
+      Trial
+    </span>
+
+    <button
+      class="btn-danger"
+      onclick="logout()"
+      style="width:auto;padding:10px 15px;margin-left:10px;">
+      Logout
+    </button>
+  </div>
+
+</div>
+
+<div class="container">
+
+  <div class="dashboard-grid">
+
+    <!-- MENU -->
+
+    <div class="section">
+
+      <h3>🍔 Menu Management</h3>
+
+      <input
+        id="itemName"
+        placeholder="Menu Item">
+
+      <input
+        id="itemPrice"
+        type="number"
+        placeholder="Price">
+
+      <button
+        class="btn-primary"
+        onclick="addMenu()">
+        Add Menu Item
+      </button>
+
+      <div id="menuList"></div>
+
+    </div>
+
+    <!-- TABLES -->
+
+    <div class="section">
+
+      <h3>🪑 Tables</h3>
+
+      <input
+        id="tableName"
+        placeholder="Table Name">
+
+      <button
+        class="btn-success"
+        onclick="addTable()">
+        Add Table
+      </button>
+
+      <div id="tableList"></div>
+
+    </div>
+
+    <!-- ORDERS -->
+
+    <div class="section">
+
+      <h3>📦 Live Orders</h3>
+
+      <div id="ordersList"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module" src="dashboard.js"></script>
+
+</body>
+</html>
