@@ -14,25 +14,27 @@
 <div class="container">
 
   <div class="navbar">
-
-    <h2>Admin Panel</h2>
-
+    <h2>🔐 Admin Dashboard</h2>
   </div>
 
   <div class="card">
 
     <h3>Create Restaurant User</h3>
 
+    <input id="rName" placeholder="Restaurant Name">
+
     <input id="rEmail" placeholder="Email">
 
-    <input id="rPassword"
+    <input
+      id="rPassword"
       type="password"
       placeholder="Password">
 
-    <button class="btn-success"
+    <button
+      class="btn-success"
       onclick="createUser()">
 
-      Create User
+      Create Restaurant
 
     </button>
 
@@ -40,9 +42,13 @@
 
   <div class="card">
 
-    <h3>Restaurants</h3>
+    <h3>🏢 Restaurant Accounts</h3>
 
-    <div id="users"></div>
+    <div id="users">
+
+      Loading...
+
+    </div>
 
   </div>
 
