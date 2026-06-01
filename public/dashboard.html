@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Cafe Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <div>
+      <h2 id="restaurantTitle">Restaurant</h2>
+      <span id="planBadge" class="badge">TRIAL</span>
+    </div>
+
+    <button class="btn-danger small" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+
+    <!-- TABLE SECTION -->
+    <div class="card">
+
+      <h2>🪑 Tables</h2>
+
+      <div class="row">
+        <input id="tableName" placeholder="Table name" />
+        <button class="btn-primary" onclick="addTable()">Add Table</button>
+        <button class="btn-secondary" onclick="openQR()">Tables QR</button>
+      </div>
+
+      <!-- GRID VIEW -->
+      <div id="tableGrid"></div>
+
+      <!-- TABLE VIEW -->
+      <div id="tableView" class="hidden"></div>
+
+    </div>
+
+    <!-- MENU SECTION -->
+    <div class="card">
+
+      <h2>🍔 Menu</h2>
+
+      <div class="row">
+        <input id="itemName" placeholder="Item name" />
+        <input id="itemPrice" type="number" placeholder="Price" />
+        <button class="btn-success" onclick="addMenu()">Add</button>
+      </div>
+
+      <div id="menuList"></div>
+
+    </div>
+
+  </div>
+
+  <!-- QR MODAL -->
+  <div id="qrPanel" class="modal"></div>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+
+</html>
