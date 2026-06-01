@@ -323,3 +323,23 @@ function loadOrders() {
     }
   );
 }
+
+window.markPaid = async function(tableId) {
+
+  const ordersRef = collection(
+    db,
+    "restaurants",
+    uid,
+    "tables",
+    tableId,
+    "orders"
+  );
+
+  const snap = await getDocs(ordersRef);
+
+  snap.forEach(async (d) => {
+    await deleteDoc(d.ref);
+  });
+
+  alert("Table cleared (Paid)");
+};
