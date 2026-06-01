@@ -40,14 +40,37 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadRestaurant() {
 
-  const snap = await getDoc(doc(db, "restaurants", uid));
+  const snap = await getDoc(
+    doc(db, "restaurants", uid)
+  );
 
   if (!snap.exists()) return;
 
   const data = snap.data();
 
+  // 🚫 Account disabled by admin
+  if (data.active === false) {
+
+    alert("Account disabled by admin");
+
+    await signOut(auth);
+
+    location.href = "index.html";
+
+    return;
+  }
+
   document.getElementById("restaurantTitle").innerText =
     data.restaurantName || "Restaurant";
+
+  const badge =
+    document.getElementById("planBadge");
+
+  if (badge) {
+    badge.innerText =
+      (data.plan || "trial").toUpperCase();
+  }
+
 }
 
 /* ---------------- MENU ---------------- */
