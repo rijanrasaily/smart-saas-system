@@ -3,9 +3,7 @@ import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
-  addDoc,
-  doc,
-  collectionGroup
+  addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -15,7 +13,8 @@ const tableId = params.get("t");
 
 let cart = [];
 
-/* LOAD MENU */
+/* ---------------- LOAD MENU ---------------- */
+
 async function loadMenu() {
 
   const menuContainer = document.getElementById("menuList");
@@ -26,22 +25,33 @@ async function loadMenu() {
   );
 
   snapshot.forEach((doc) => {
+
     const item = doc.data();
 
     menuContainer.innerHTML += `
       <div class="order-card">
+
+        ${item.image ? `
+          <img src="${item.image}"
+            style="width:100%;border-radius:12px;margin-bottom:10px;">
+        ` : ""}
+
         <h3>${item.name}</h3>
         <p>Rs. ${item.price}</p>
 
         <button onclick="addToCart('${item.name}', ${item.price})">
           Add
         </button>
+
       </div>
     `;
   });
 }
 
+/* ---------------- CART ---------------- */
+
 window.addToCart = function(name, price) {
+
   const existing = cart.find(i => i.name === name);
 
   if (existing) existing.qty++;
@@ -54,15 +64,17 @@ function renderCart() {
 
   const cartBox = document.getElementById("cart");
 
-  let total = 0;
   let html = "";
+  let total = 0;
 
   cart.forEach((item, index) => {
+
     const subtotal = item.price * item.qty;
     total += subtotal;
 
     html += `
       <div class="order-card">
+
         <b>${item.name}</b><br>
         Rs ${item.price}<br><br>
 
@@ -72,6 +84,7 @@ function renderCart() {
 
         <br><br>
         Rs ${subtotal}
+
       </div>
     `;
   });
@@ -91,26 +104,24 @@ window.decreaseQty = (i) => {
   renderCart();
 };
 
-/* PLACE ORDER (🔥 FIXED STRUCTURE) */
-window.placeOrder = async function () {
+/* ---------------- PLACE ORDER ---------------- */
+
+window.placeOrder = async function() {
 
   if (cart.length === 0) {
-    alert("Cart empty");
+    alert("Cart is empty");
     return;
   }
 
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = cart.reduce(
+    (sum, item) => sum + item.price * item.qty,
+    0
+  );
 
   await addDoc(
-    collection(
-      db,
-      "restaurants",
-      restaurantId,
-      "tables",
-      tableId,
-      "orders"
-    ),
+    collection(db, "restaurants", restaurantId, "orders"),
     {
+      tableId,
       items: cart,
       total,
       status: "pending",
