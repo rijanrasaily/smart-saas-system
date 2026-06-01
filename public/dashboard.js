@@ -11,8 +11,8 @@ import {
   collection,
   addDoc,
   deleteDoc,
-  doc as docRef,
-  onSnapshot
+  onSnapshot,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let uid = null;
@@ -48,10 +48,9 @@ async function loadRestaurant() {
 
   document.getElementById("restaurantTitle").innerText =
     data.restaurantName || "Restaurant";
-
 }
 
-/* ---------------- MENU ADD ---------------- */
+/* ---------------- MENU ---------------- */
 
 window.addMenu = async () => {
 
@@ -60,7 +59,7 @@ window.addMenu = async () => {
   const image = document.getElementById("itemImage").value;
 
   if (!name || !price) {
-    alert("Enter name and price");
+    alert("Enter name & price");
     return;
   }
 
@@ -73,13 +72,9 @@ window.addMenu = async () => {
     }
   );
 
-  document.getElementById("itemName").value = "";
-  document.getElementById("itemPrice").value = "";
-  document.getElementById("itemImage").value = "";
-
 };
 
-/* ---------------- MENU LOAD + DELETE ---------------- */
+/* ---------------- LOAD MENU + DELETE ---------------- */
 
 function loadMenu() {
 
@@ -108,16 +103,8 @@ function loadMenu() {
 
             <br><br>
 
-            <button
-              onclick="deleteMenuItem('${id}')"
-              style="
-                background:#ef4444;
-                color:white;
-                padding:8px;
-                border:none;
-                border-radius:8px;
-                cursor:pointer;
-              ">
+            <button onclick="deleteMenu('${id}')"
+              style="background:red;color:white;padding:8px;border:none;border-radius:8px;">
               Delete
             </button>
 
@@ -129,71 +116,68 @@ function loadMenu() {
   );
 }
 
-/* ---------------- DELETE MENU ITEM ---------------- */
-
-window.deleteMenuItem = async (id) => {
-
-  if (!confirm("Delete this menu item?")) return;
-
-  await deleteDoc(
-    docRef(db, "restaurants", uid, "menu", id)
-  );
-
+window.deleteMenu = async (id) => {
+  await deleteDoc(doc(db, "restaurants", uid, "menu", id));
 };
 
 /* ---------------- TABLES ---------------- */
 
 window.addTable = async () => {
 
-  const tableName = document.getElementById("tableName").value;
-
-  if (!tableName) {
-    alert("Enter table name");
-    return;
-  }
+  const name = document.getElementById("tableName").value;
 
   await addDoc(
     collection(db, "restaurants", uid, "tables"),
     {
-      name: tableName,
+      name,
       createdAt: Date.now()
     }
   );
 
-  document.getElementById("tableName").value = "";
-
 };
 
-/* ---------------- ORDERS (unchanged) ---------------- */
+/* ---------------- ORDERS ---------------- */
 
 function loadOrders() {
+
+  const list = document.getElementById("ordersList");
+
   onSnapshot(
     collection(db, "restaurants", uid, "orders"),
     (snap) => {
 
-      const list = document.getElementById("ordersList");
       list.innerHTML = "";
 
       snap.forEach((docSnap) => {
 
         const order = docSnap.data();
+        const orderId = docSnap.id;
+
+        if (order.status === "paid") return;
 
         let itemsText = "";
 
-        if (order.items) {
-          order.items.forEach(i => {
-            itemsText += `${i.name} x${i.qty}, `;
-          });
-        }
+        order.items.forEach(i => {
+          itemsText += `${i.name} x${i.qty}, `;
+        });
 
         list.innerHTML += `
           <div class="order-card">
 
-            🪑 Table: ${order.tableId}<br><br>
+            🪑 Table: <b>${order.tableId}</b><br><br>
 
             🍔 ${itemsText}<br><br>
 
-            📌 ${order.status}
+            💰 Total: Rs ${order.total}<br><br>
+
+            📌 Status: ${order.status}
+
+            <br><br>
+
+            <button onclick="markPaid('${orderId}')"
+              style="background:green;color:white;padding:8px;border:none;border-radius:8px;">
+              Mark Paid
+            </button>
 
           </div>
         `;
@@ -202,3 +186,24 @@ function loadOrders() {
     }
   );
 }
+
+/* ---------------- PAID → AUTO CLEAR ---------------- */
+
+window.markPaid = async (orderId) => {
+
+  await updateDoc(
+    doc(db, "restaurants", uid, "orders", orderId),
+    {
+      status: "paid"
+    }
+  );
+
+  alert("Payment completed & order cleared!");
+};
+
+/* ---------------- LOGOUT ---------------- */
+
+window.logout = async () => {
+  await signOut(auth);
+  location.href = "index.html";
+};
