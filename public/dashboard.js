@@ -1,180 +1,13 @@
-import { auth, db }
-from "./firebase.js";
+import { auth, db } from "./firebase.js";
 
 import {
   onAuthStateChanged,
   signOut
-}
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 import {
   doc,
   getDoc,
-  addDoc,
-  collection,
-  onSnapshot
-}
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-let uid = null;
-
-const restaurantTitle =
-document.getElementById(
-  "restaurantTitle"
-);
-
-const planBadge =
-document.getElementById(
-  "planBadge"
-);
-
-window.logout = async () => {
-
-  await signOut(auth);
-
-  location.href =
-    "index.html";
-
-};
-
-onAuthStateChanged(
-  auth,
-  async user => {
-
-    if(!user){
-
-      location.href =
-        "index.html";
-
-      return;
-    }
-
-    uid = user.uid;
-
-    loadRestaurant();
-
-    loadMenu();
-
-    loadTables();
-
-    loadOrders();
-
-  }
-);
-
-async function loadRestaurant(){
-
-  const docRef =
-    doc(
-      db,
-      "restaurants",
-      uid
-    );
-
-  const snap =
-    await getDoc(
-      docRef
-    );
-
-  if(!snap.exists())
-    return;
-
-  const data =
-    snap.data();
-
-  restaurantTitle.innerText =
-    data.restaurantName;
-
-  planBadge.innerText =
-    data.plan.toUpperCase();
-
-}
-
-/* MENU */
-
-window.addMenu =
-async () => {
-
-  const name =
-    document
-      .getElementById(
-        "itemName"
-      )
-      .value;
-
-  const price =
-    document
-      .getElementById(
-        "itemPrice"
-      )
-      .value;
-
-  if(!name || !price)
-    return;
-
-  await addDoc(
-    collection(
-      db,
-      "restaurants",
-      uid,
-      "menu"
-    ),
-    {
-      name,
-      price
-    }
-  );
-
-};
-
-function loadMenu(){
-
-  onSnapshot(
-
-    collection(
-      db,
-      "restaurants",
-      uid,
-      "menu"
-    ),
-
-    snap => {
-
-      const list =
-        document
-          .getElementById(
-            "menuList"
-          );
-
-      list.innerHTML =
-        "";
-
-      snap.forEach(
-        doc => {
-
-          const item =
-            doc.data();
-
-          list.innerHTML += `
-            <div class="order-card">
-              ${item.name}
-              - ₹${item.price}
-            </div>
-          `;
-
-        }
-      );
-
-    }
-
-  );
-
-}
-
-/* TABLES */
-
-import { auth, db } from "./firebase.js";
-import {
   collection,
   addDoc,
   onSnapshot
@@ -182,67 +15,245 @@ import {
 
 let uid = null;
 
-/* AUTH */
-import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+/* ---------------- AUTH ---------------- */
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) location.href = "index.html";
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    location.href = "index.html";
+    return;
+  }
+
   uid = user.uid;
 
+  await loadRestaurant();
+
+  loadMenu();
   loadTables();
   loadOrders();
+
 });
 
-/* ===================== TABLES ===================== */
+/* ---------------- LOGOUT ---------------- */
 
-window.addTable = async () => {
+window.logout = async () => {
 
-  const name = document.getElementById("tableName").value;
+  await signOut(auth);
 
-  if (!name) return;
+  location.href = "index.html";
 
-  const tableRef = await addDoc(
-    collection(db, "restaurants", uid, "tables"),
-    {
-      name: name,
-      createdAt: Date.now()
+};
+
+/* ---------------- RESTAURANT INFO ---------------- */
+
+async function loadRestaurant() {
+
+  try {
+
+    const snap =
+      await getDoc(
+        doc(db, "restaurants", uid)
+      );
+
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    const title =
+      document.getElementById("restaurantTitle");
+
+    const badge =
+      document.getElementById("planBadge");
+
+    if (title)
+      title.innerText =
+        data.restaurantName || "Restaurant";
+
+    if (badge)
+      badge.innerText =
+        (data.plan || "trial").toUpperCase();
+
+  }
+  catch (e) {
+    console.error(e);
+  }
+
+}
+
+/* ---------------- MENU ---------------- */
+
+window.addMenu = async () => {
+
+  const name =
+    document.getElementById("itemName").value;
+
+  const price =
+    document.getElementById("itemPrice").value;
+
+  if (!name || !price) {
+    alert("Enter item and price");
+    return;
+  }
+
+  try {
+
+    await addDoc(
+      collection(
+        db,
+        "restaurants",
+        uid,
+        "menu"
+      ),
+      {
+        name,
+        price
+      }
+    );
+
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemPrice").value = "";
+
+  }
+  catch (e) {
+
+    console.error(e);
+
+  }
+
+};
+
+function loadMenu() {
+
+  onSnapshot(
+    collection(
+      db,
+      "restaurants",
+      uid,
+      "menu"
+    ),
+    (snap) => {
+
+      const list =
+        document.getElementById("menuList");
+
+      if (!list) return;
+
+      list.innerHTML = "";
+
+      snap.forEach((docSnap) => {
+
+        const item =
+          docSnap.data();
+
+        list.innerHTML += `
+          <div class="order-card">
+            🍔 ${item.name}
+            <br>
+            ₹ ${item.price}
+          </div>
+        `;
+
+      });
+
     }
   );
 
-  const qrLink =
-    `${location.origin}/table.html?r=${uid}&t=${tableRef.id}`;
+}
 
-  alert("Table created!\nQR Link:\n" + qrLink);
+/* ---------------- TABLES ---------------- */
+
+window.addTable = async () => {
+
+  const tableName =
+    document.getElementById("tableName").value;
+
+  if (!tableName) {
+    alert("Enter table name");
+    return;
+  }
+
+  try {
+
+    await addDoc(
+      collection(
+        db,
+        "restaurants",
+        uid,
+        "tables"
+      ),
+      {
+        name: tableName,
+        createdAt: Date.now()
+      }
+    );
+
+    document.getElementById("tableName").value = "";
+
+  }
+  catch (e) {
+
+    console.error(e);
+
+  }
 
 };
 
 function loadTables() {
 
   onSnapshot(
-    collection(db, "restaurants", uid, "tables"),
+    collection(
+      db,
+      "restaurants",
+      uid,
+      "tables"
+    ),
     (snap) => {
 
-      const list = document.getElementById("tableList");
+      const list =
+        document.getElementById("tableList");
+
+      if (!list) return;
+
       list.innerHTML = "";
 
-      snap.forEach((doc) => {
+      snap.forEach((docSnap) => {
 
-        const t = doc.data();
+        const table =
+          docSnap.data();
 
-        const qrLink =
-          `${location.origin}/table.html?r=${uid}&t=${doc.id}`;
+        const tableId =
+          docSnap.id;
+
+        const qrUrl =
+          `${location.origin}/table.html?r=${uid}&t=${tableId}`;
 
         list.innerHTML += `
+
           <div class="order-card">
 
-            🪑 ${t.name}
-            <br><br>
+            <h3>🪑 ${table.name}</h3>
 
-            <small>${qrLink}</small>
+            <img
+              src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}"
+              style="
+                width:200px;
+                display:block;
+                margin:auto;
+                margin-top:10px;
+                margin-bottom:10px;
+              "
+            >
+
+            <button
+              class="btn-primary"
+              onclick="window.open('${qrUrl}','_blank')">
+
+              Test QR
+
+            </button>
 
           </div>
+
         `;
 
       });
@@ -251,41 +262,62 @@ function loadTables() {
   );
 
 }
-/* ORDERS */
 
-import {
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+/* ---------------- ORDERS ---------------- */
 
 function loadOrders() {
 
   onSnapshot(
-    collection(db, "restaurants", uid, "orders"),
+    collection(
+      db,
+      "restaurants",
+      uid,
+      "orders"
+    ),
     (snap) => {
 
-      const list = document.getElementById("ordersList");
+      const list =
+        document.getElementById("ordersList");
+
+      if (!list) return;
+
       list.innerHTML = "";
 
-      snap.forEach((doc) => {
+      snap.forEach((docSnap) => {
 
-        const o = doc.data();
+        const order =
+          docSnap.data();
 
         let itemsText = "";
 
-        o.items.forEach(i => {
-          itemsText += `${i.name} `;
-        });
+        if (order.items) {
+
+          order.items.forEach(item => {
+
+            itemsText +=
+              `${item.name} `;
+
+          });
+
+        }
 
         list.innerHTML += `
+
           <div class="order-card">
 
-            🪑 Table: ${o.tableId}
-            <br>
-            🍔 Items: ${itemsText}
-            <br>
-            📌 Status: ${o.status}
+            🪑 Table:
+            ${order.tableId || "-"}
+
+            <br><br>
+
+            🍔 ${itemsText}
+
+            <br><br>
+
+            📌 ${order.status || "pending"}
 
           </div>
+
         `;
 
       });
@@ -293,4 +325,4 @@ function loadOrders() {
     }
   );
 
-}
+      }
