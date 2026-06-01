@@ -59,22 +59,33 @@ window.addMenu = async () => {
   const image = document.getElementById("itemImage").value;
 
   if (!name || !price) {
-    alert("Enter name & price");
+    alert("Enter name and price");
     return;
   }
 
-  await addDoc(
-    collection(db, "restaurants", uid, "menu"),
-    {
-      name,
-      price: Number(price),
-      image: image || ""
-    }
-  );
+  try {
+
+    await addDoc(
+      collection(db, "restaurants", uid, "menu"),
+      {
+        name,
+        price: Number(price),
+        image: image || ""
+      }
+    );
+
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemPrice").value = "";
+    document.getElementById("itemImage").value = "";
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to add menu item");
+  }
 
 };
 
-/* ---------------- LOAD MENU + DELETE ---------------- */
+/* ---------------- LOAD MENU ---------------- */
 
 function loadMenu() {
 
@@ -120,32 +131,90 @@ window.deleteMenu = async (id) => {
   await deleteDoc(doc(db, "restaurants", uid, "menu", id));
 };
 
-/* ---------------- TABLES ---------------- */
+/* ---------------- 🔥 FIXED TABLE SYSTEM ---------------- */
 
 window.addTable = async () => {
 
-  const name = document.getElementById("tableName").value;
+  const input = document.getElementById("tableName");
+  const name = input.value.trim();
 
-  await addDoc(
-    collection(db, "restaurants", uid, "tables"),
-    {
-      name,
-      createdAt: Date.now()
-    }
-  );
+  if (!name) {
+    alert("Enter table name");
+    return;
+  }
+
+  try {
+
+    // create table with better structure
+    await addDoc(
+      collection(db, "restaurants", uid, "tables"),
+      {
+        name,
+        status: "empty",
+        createdAt: Date.now()
+      }
+    );
+
+    input.value = "";
+
+    alert("Table added successfully!");
+
+  } catch (err) {
+    console.error("Table error:", err);
+    alert("Failed to add table");
+  }
 
 };
+
+/* ---------------- LOAD TABLES + QR ---------------- */
+
+function loadTables() {
+
+  onSnapshot(
+    collection(db, "restaurants", uid, "tables"),
+    (snap) => {
+
+      const list = document.getElementById("tableList");
+      list.innerHTML = "";
+
+      snap.forEach((docSnap) => {
+
+        const table = docSnap.data();
+        const tableId = docSnap.id;
+
+        const qrUrl =
+          `${location.origin}/table.html?r=${uid}&t=${tableId}`;
+
+        list.innerHTML += `
+          <div class="order-card">
+
+            <h3>🪑 ${table.name}</h3>
+
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}"
+              style="width:180px;margin:10px auto;display:block;">
+
+            <button onclick="window.open('${qrUrl}')"
+              class="btn-primary">
+              Open Table
+            </button>
+
+          </div>
+        `;
+      });
+
+    }
+  );
+}
 
 /* ---------------- ORDERS ---------------- */
 
 function loadOrders() {
 
-  const list = document.getElementById("ordersList");
-
   onSnapshot(
     collection(db, "restaurants", uid, "orders"),
     (snap) => {
 
+      const list = document.getElementById("ordersList");
       list.innerHTML = "";
 
       snap.forEach((docSnap) => {
@@ -187,7 +256,7 @@ function loadOrders() {
   );
 }
 
-/* ---------------- PAID → AUTO CLEAR ---------------- */
+/* ---------------- PAID SYSTEM ---------------- */
 
 window.markPaid = async (orderId) => {
 
@@ -198,7 +267,7 @@ window.markPaid = async (orderId) => {
     }
   );
 
-  alert("Payment completed & order cleared!");
+  alert("Marked as Paid");
 };
 
 /* ---------------- LOGOUT ---------------- */
