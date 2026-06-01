@@ -267,62 +267,59 @@ function loadTables() {
 
 function loadOrders() {
 
+  const ordersList = document.getElementById("ordersList");
+
   onSnapshot(
-    collection(
-      db,
-      "restaurants",
-      uid,
-      "orders"
-    ),
-    (snap) => {
+    collection(db, "restaurants", uid, "tables"),
+    (tableSnap) => {
 
-      const list =
-        document.getElementById("ordersList");
+      ordersList.innerHTML = "";
 
-      if (!list) return;
+      tableSnap.forEach(async (tableDoc) => {
 
-      list.innerHTML = "";
+        const tableId = tableDoc.id;
 
-      snap.forEach((docSnap) => {
+        const ordersSnap = await getDocs(
+          collection(
+            db,
+            "restaurants",
+            uid,
+            "tables",
+            tableId,
+            "orders"
+          )
+        );
 
-        const order =
-          docSnap.data();
-
+        let total = 0;
         let itemsText = "";
 
-        if (order.items) {
+        ordersSnap.forEach(orderDoc => {
 
-          order.items.forEach(item => {
+          const order = orderDoc.data();
 
-            itemsText +=
-              `${item.name} `;
-
+          order.items.forEach(i => {
+            itemsText += `${i.name} x${i.qty}, `;
+            total += i.price * i.qty;
           });
 
-        }
+        });
 
-        list.innerHTML += `
-
+        ordersList.innerHTML += `
           <div class="order-card">
 
-            🪑 Table:
-            ${order.tableId || "-"}
+            <h3>🪑 ${tableId}</h3>
 
-            <br><br>
+            🍔 ${itemsText || "No orders"}<br><br>
 
-            🍔 ${itemsText}
+            💰 Total: Rs ${total}<br><br>
 
-            <br><br>
-
-            📌 ${order.status || "pending"}
+            📌 Status: pending
 
           </div>
-
         `;
 
       });
 
     }
   );
-
-      }
+}
