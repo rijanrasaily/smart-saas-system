@@ -1,45 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>Order Menu</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="style.css">
+  <title>Order Food</title>
+
+  <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <div class="card">
+    <!-- Header -->
 
-    <h2>🍽 Menu</h2>
+    <div class="card">
 
-    <div id="menuList"></div>
+      <h1>🍽️ Digital Menu</h1>
+
+      <p>
+        Select your food and place your order
+      </p>
+
+    </div>
+
+    <!-- Menu -->
+
+    <div class="card">
+
+      <h2>📋 Menu</h2>
+
+      <div id="menuList">
+
+        Loading menu...
+
+      </div>
+
+    </div>
+
+    <!-- Cart -->
+
+    <div class="card">
+
+      <h2>🛒 Your Order</h2>
+
+      <div id="cart">
+
+        No items selected
+
+      </div>
+
+      <button
+        onclick="placeOrder()"
+        class="btn-primary"
+        style="margin-top:15px;"
+      >
+        Place Order
+      </button>
+
+    </div>
 
   </div>
 
-  <div class="card">
-
-    <h3>🛒 Your Order</h3>
-
-    <div id="cart"></div>
-
-    <button
-      class="btn-primary"
-      onclick="placeOrder()">
-
-      Place Order
-
-    </button>
-
-  </div>
-
-</div>
-
-<script type="module" src="table.js"></script>
+  <script type="module" src="table.js"></script>
 
 </body>
+
 </html>
